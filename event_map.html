@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+    <head>
+    <style>
+        
+        @import url('https://fonts.googleapis.com/css?family=Raleway');
+        
+        body {
+            font-family: "Raleway"
+        }
+        
+        button {
+            background-color: darkblue;
+            color: aliceblue;
+            font-family: 'Raleway';
+            border-radius: 7px;
+        }
+        
+    </style>
+        
+        
+    <title>Liberation & Freedom Days Event Map</title>
+        
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        
+        <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDIUQfaQ5jNgBd4-fSp1bBjjSThlFS5a20"></script>
+
+        <script>
+            
+            var map;				    // create a map variable, with Global scope.
+            var markersArray = [];		// create array to hold markers
+            
+            function initialize() {
+                // setup some options
+                
+                var maxLat = Math.max(...data.map(x=>parseFloat(x.Latitude)));
+                var minLat = Math.min(...data.map(x=>parseFloat(x.Latitude)));
+                var maxLng = Math.max(...data.map(x=>parseFloat(x.Longitude)));
+                var minLng = Math.min(...data.map(x=>parseFloat(x.Longitude)));
+                var centerLat = (maxLat + minLat) / 2;
+                var centerLng = (maxLng + minLng) / 2;
+                
+                var mapCenterLatLong = new google.maps.LatLng(centerLat, centerLng);
+                
+                var mapOptions = {
+                    center: mapCenterLatLong,
+                    zoom: 14,
+                    styles: [
+                      {
+                        "featureType": "administrative",
+                        "elementType": "geometry",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "administrative.land_parcel",
+                        "elementType": "labels",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "poi",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "poi",
+                        "elementType": "labels.text",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "road",
+                        "elementType": "labels.icon",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "road.local",
+                        "elementType": "labels",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "transit",
+                        "stylers": [
+                          {
+                            "visibility": "off"
+                          }
+                        ]
+                      },
+                      {
+                        "featureType": "water",
+                        "stylers": [
+                          {
+                            "color": "#223f91"
+                          }
+                        ]
+                      }
+                    ],
+                    
+                    
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                    //mapTypeId: google.maps.MapTypeId.TERRAIN	   // other options
+                    //mapTypeId: google.maps.MapTypeId.SATELLITE
+                    //mapTypeId: google.maps.MapTypeId.HYBRID
+                    };
+
+                // create the map, in the DIV defined, using the options set just above.
+                map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+
+            }
+            
+
+            var data;
+            
+            function getData(day, maxradius, circleradius) {
+                d3.csv("/data.csv").then(function(d) {
+                    data = d.filter(function(row) {
+                        return row['Date'] == day;
+                    });
+                    initialize();
+                    draw(maxradius, circleradius);
+                });
+                
+            }
+
+            // declare some base variables
+            var drawArea;
+            var rScale;
+
+            function draw(maxradius, circleradius) {
+                drawArea = d3.select("#map_canvas");     			// the SVG that we're going to draw on
+
+                rScale = circleradius;
+   
+                data.forEach(function (point) {
+                    
+                    var infoWindow = new google.maps.InfoWindow();
+                    
+                    var myLatLong = new google.maps.LatLng(point.Latitude, point.Longitude)  
+                    
+                    
+                    var marker1 = new google.maps.Marker({
+                        position:myLatLong,
+                        icon: {
+                            path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+                            scale: 8,
+                            fillColor: "64,36,163",
+                            strokeWeight: 2,
+                            strokeColor: "#bfe0ff",
+                            fillOpacity: 0.7
+                        },
+                        map: map,
+                    });
+                    
+                    google.maps.event.addListener(marker1, 'mouseover', function() {
+                        infoWindow.setContent('<div>Location: ' + point.Location + 
+                        '<p> Time: ' + point.Start_Time + ' - ' +  point.End_Time + '</p>' +
+                        '<p> Date: ' + point.Date + '</p>' +
+                        'Title: ' + point.Title + '</div>');
+                        infoWindow.open(map, this);
+                    });
+                    
+                    
+                    google.maps.event.addListener(marker1, 'mouseout', function() {
+                        infoWindow.close();
+                    });                    
+                                                            
+                })
+            }
+            
+        </script>
+    </head>
+    
+    <body onload="getData('03/01/20', 0.015, 0.01), initialize()">
+    <!--HTML page objects go here-->
+    <h1>Liberation & Freedom Days</h1>
+
+    <div id="legend">
+        <p>
+            <button onclick="getData('03/01/20', 0.015, 0.01)">March 1</button>
+            <button onclick="getData('03/02/20', 0.015, 0.01)">March 2</button>
+            <button onclick="getData('03/03/20', 0.015, 0.01)">March 3</button>
+            <button onclick="getData('03/04/20', 0.015, 0.01)">March 4</button>
+            <button onclick="getData('03/05/20', 0.015, 0.01)">March 5</button>
+            <button onclick="getData('03/07/20', 0.015, 0.01)">March 7</button>
+            
+        </p>
+
+        
+    </div>
+    </body>
+    
+    
+    <body onload="getData('03/01/20', 0.015, 0.01), initialize()">
+        <div id="map_canvas" style="width:800px; height:800px;"></div>
+    </body>
+</html>
